@@ -222,7 +222,14 @@ def train_model(config):
     else:
         print('No model to preload, starting from scratch')
 
-    loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
+    # Use the target tokenizer pad token for the loss function. Using the source
+    # vocabulary pad id would result in padding tokens not being ignored
+    # correctly when the two tokenizers assign different ids to the special
+    # tokens.
+    loss_fn = nn.CrossEntropyLoss(
+        ignore_index=tokenizer_tgt.token_to_id('[PAD]'),
+        label_smoothing=0.1,
+    ).to(device)
 
     for epoch in range(initial_epoch, config['num_epochs']):
         torch.cuda.empty_cache()
